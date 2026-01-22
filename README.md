@@ -2,7 +2,7 @@
 
 A **touch-free collaborative whiteboard** that allows users to **draw, erase, undo/redo, change colors, and interact using hand gestures + voice commands** through a standard webcam.
 
-Designed for **inclusive digital collaboration and remote education**, especially helping users who struggle with physical devices like mouse/stylus/touchscreen.
+This project is designed to make **remote collaboration and online education more inclusive**, especially for users who face difficulty using physical input devices (mouse/stylus/touchscreen).
 
 ---
 
@@ -10,13 +10,13 @@ Designed for **inclusive digital collaboration and remote education**, especiall
 
 ✅ Gesture-controlled drawing & erasing using webcam (MediaPipe Hands)  
 ✅ Multi-user real-time collaboration using Socket.io  
-✅ Room-based sessions (create/join rooms)  
-✅ Secure Login/Signup using Supabase Auth  
+✅ Room-based whiteboard sessions (create/join rooms)  
+✅ Secure Login/Signup using Supabase Authentication  
 ✅ Tool Controls: color palette, brush size, eraser size  
 ✅ Undo / Redo support  
 ✅ Dark Mode whiteboard  
 ✅ Voice Commands using Web Speech API  
-✅ Save whiteboard as image (PNG)  
+✅ Save whiteboard as image (PNG)
 
 ---
 
@@ -71,9 +71,11 @@ gesture-whiteboard/
 │ │ └── ...
 │ └── package.json
 │
-└── backend/
-├── server.js
-└── package.json
+├── backend/
+│ ├── server.js
+│ └── package.json
+│
+└── start.bat
 
 yaml
 Copy code
@@ -86,26 +88,51 @@ Copy code
 ```bash
 git clone https://github.com/AnoopRA25/gesture-whiteboard.git
 cd gesture-whiteboard
-2️⃣ Backend Setup
+2️⃣ Install Backend Dependencies
 bash
 Copy code
 cd backend
 npm install
-node server.js
-Backend runs at:
-📍 http://localhost:5000
-
-3️⃣ Frontend Setup
+3️⃣ Install Frontend Dependencies
 bash
 Copy code
 cd ../frontend
 npm install
-npm run dev
-Frontend runs at:
-📍 http://localhost:5173
+▶️ Run Project with One Click (start.bat)
+A start.bat script is included to run both frontend and backend automatically.
 
+✅ Steps:
+Go to the root folder:
+
+makefile
+Copy code
+D:\gesture-whiteboard
+Double click:
+
+pgsql
+Copy code
+start.bat
+✅ It will automatically:
+
+Start Backend server → http://localhost:5000
+
+Start Frontend server → http://localhost:5173
+
+Open the app in browser
+
+🔄 Run Manually (Optional)
+Backend:
+bash
+Copy code
+cd backend
+node server.js
+Frontend:
+bash
+Copy code
+cd frontend
+npm run dev
 🔑 Supabase Configuration
-Step 1: Get Supabase keys
+Step 1: Get Supabase Keys
 Supabase Dashboard → Project Settings → Data API
 Copy:
 
@@ -113,7 +140,9 @@ Project URL
 
 Publishable key
 
-Step 2: Paste in
+Step 2: Paste Keys in Project
+Edit:
+
 📌 frontend/src/supabaseClient.js
 
 js
@@ -121,28 +150,28 @@ Copy code
 const supabaseUrl = "YOUR_PROJECT_URL";
 const supabaseAnonKey = "YOUR_PUBLISHABLE_KEY";
 🧪 How to Use
-Login/Signup
+Signup / Login
 
 Create a room
 
-Allow Camera Permission
+Allow webcam permission
 
-Use gestures to draw / erase
+Use gestures to draw/erase
 
-Use toolbar to change colors, brush sizes
+Use toolbar for colors and brush sizes
 
-Use Undo / Redo buttons
+Use Undo / Redo
 
-Speak voice commands if needed
+Use voice commands if needed
 
-Save board as image
+Save whiteboard as image
 
 🌟 Future Enhancements
 🚀 Live cursors + usernames
 🚀 Board history + autosave to Supabase DB
-🚀 Text tool, shapes tool
+🚀 Text tool and shapes tool
 🚀 Export as PDF
-🚀 Gesture-based tool selection
+🚀 Gesture-based tool selection (palette, tools)
 🚀 Presenter/Student mode
 
 👤 Author
@@ -150,16 +179,5 @@ AnoopRA25
 GitHub: https://github.com/AnoopRA25
 
 📜 License
-Educational project for learning and demonstration purposes.
+This project is made for educational and demonstration purposes.
 
-yaml
-Copy code
-
----
-
-✅ After updating README, push it to GitHub:
-
-```powershell
-git add README.md
-git commit -m "Updated README with new features"
-git push
