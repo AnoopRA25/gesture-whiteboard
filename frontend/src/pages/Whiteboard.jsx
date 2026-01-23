@@ -28,6 +28,10 @@ export default function Whiteboard() {
 
   const lastPoint = useRef({ x: null, y: null });
 
+  const gestureBuffer = useRef([]);
+const clearHoldStart = useRef(null);
+
+
   useEffect(() => {
     socket.emit("join-room", roomId);
 
@@ -173,6 +177,28 @@ export default function Whiteboard() {
     camera.start();
   }, [mode, color, brushSize, eraserSize]);
 
+
+  function getStableGesture(g) {
+  gestureBuffer.current.push(g);
+  if (gestureBuffer.current.length > 6) gestureBuffer.current.shift();
+
+  const count = gestureBuffer.current.filter((x) => x === g).length;
+  return count >= 5 ? g : "NONE";
+}
+
+function getGestureType({ indexUp, middleUp, ringUp, pinkyUp }) {
+  // ✋ clear
+  if (indexUp && middleUp && ringUp && pinkyUp) return "CLEAR";
+
+  // ✌ erase
+  if (indexUp && middleUp && !ringUp && !pinkyUp) return "ERASE";
+
+  // ☝ draw
+  if (indexUp && !middleUp && !ringUp && !pinkyUp) return "DRAW";
+
+  return "NONE";
+}
+ 
   // ✅ gesture results
   function onResults(results) {
     if (!results.multiHandLandmarks?.length) {
@@ -183,8 +209,9 @@ export default function Whiteboard() {
     const lm = results.multiHandLandmarks[0];
     const { indexUp, middleUp, ringUp, pinkyUp } = fingersUp(lm);
 
-    let x = lm[8].x * 1000;
-    let y = lm[8].y * 600;
+    let x = (1 - lm[8].x) * 1000;  // ✅ mirror corrected
+let y = lm[8].y * 600;
+
 
     // smooth
     const smoothFactor = 0.35;
@@ -193,34 +220,47 @@ export default function Whiteboard() {
       y = lastPoint.current.y + (y - lastPoint.current.y) * smoothFactor;
     }
 
-    // ✋ clear board
-    if (indexUp && middleUp && ringUp && pinkyUp) {
-      handleClear();
-      lastPoint.current = { x: null, y: null };
-      return;
-    }
+    const gestureNow = getGestureType({ indexUp, middleUp, ringUp, pinkyUp });
+const stable = getStableGesture(gestureNow);
 
-    // ✌ erase
-    if (indexUp && middleUp && !ringUp && !pinkyUp) {
-      if (mode !== "ERASE") saveState();
-      setMode("ERASE");
+// ✅ CLEAR (hold palm for 0.8 sec to prevent accidental clear)
+if (stable === "CLEAR") {
+  if (!clearHoldStart.current) clearHoldStart.current = Date.now();
 
-      drawLine(x, y, "ERASE");
-      socket.emit("draw", { roomId, data: { x, y, mode: "ERASE" } });
-      lastPoint.current = { x, y };
-      return;
-    }
+  if (Date.now() - clearHoldStart.current > 800) {
+    handleClear();
+    clearHoldStart.current = null;
+    lastPoint.current = { x: null, y: null };
+  }
+  return;
+}
+clearHoldStart.current = null;
 
-    // ☝ draw
-    if (indexUp && !middleUp && !ringUp && !pinkyUp) {
-      if (mode !== "DRAW") saveState();
-      setMode("DRAW");
+// ✅ ERASE
+if (stable === "ERASE") {
+  if (mode !== "ERASE") saveState();
+  setMode("ERASE");
 
-      drawLine(x, y, "DRAW");
-      socket.emit("draw", { roomId, data: { x, y, mode: "DRAW", color, brushSize } });
-      lastPoint.current = { x, y };
-      return;
-    }
+  drawLine(x, y, "ERASE");
+  socket.emit("draw", { roomId, data: { x, y, mode: "ERASE" } });
+  lastPoint.current = { x, y };
+  return;
+}
+
+// ✅ DRAW
+if (stable === "DRAW") {
+  if (mode !== "DRAW") saveState();
+  setMode("DRAW");
+
+  drawLine(x, y, "DRAW");
+  socket.emit("draw", {
+    roomId,
+    data: { x, y, mode: "DRAW", color, brushSize },
+  });
+  lastPoint.current = { x, y };
+  return;
+}
+
 
     // stop
     lastPoint.current = { x: null, y: null };
@@ -315,11 +355,12 @@ export default function Whiteboard() {
 
       <div className="flex justify-center gap-4">
         <video
-          ref={videoRef}
-          className="w-72 h-52 border rounded shadow"
-          autoPlay
-          playsInline
-        />
+  ref={videoRef}
+  className="w-72 h-52 border rounded shadow transform scale-x-[-1]"
+  autoPlay
+  playsInline
+/>
+
 
         <canvas
           ref={canvasRef}
